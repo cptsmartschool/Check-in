@@ -28,24 +28,22 @@
 
     @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(39, 174, 96, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(39, 174, 96, 0); } 100% { box-shadow: 0 0 0 0 rgba(39, 174, 96, 0); } }
 
-    /* --- 🔑 แก้ไขปุ่มจม: ล็อคพื้นที่หน้าจอให้อ่านง่ายและโชว์ปุ่มแน่นอน --- */
+    /* --- 🔑 หน้าจอล็อคแบบไม่มีปุ่มยืนยัน (ตรวจจับรหัสอัตโนมัติ) --- */
     #lockScreen { 
       position: absolute; 
       top: 0; 
       left: 0; 
       width: 100%; 
       height: 100%; 
-      min-height: 500px; /* บังคับความสูงขั้นต่ำ */
       background: #ffffff; 
       border-radius: 16px; 
       display: flex; 
       flex-direction: column; 
-      justify-content: flex-start; 
+      justify-content: center; 
       align-items: center; 
       z-index: 100; 
       padding: 30px 15px; 
       box-sizing: border-box; 
-      overflow-y: auto; 
     }
     
     #cdKeyInput { 
@@ -58,20 +56,6 @@
       border-radius: 8px; 
       font-family: 'Sarabun'; 
       margin-bottom: 20px; 
-    }
-    
-    .btn-lock { 
-      background-color: #e74c3c; 
-      color: white; 
-      padding: 15px; 
-      width: 90%; /* ขยายปุ่มให้กว้างเท่าช่องพิมพ์รหัส */
-      border: none; 
-      border-radius: 8px; 
-      font-size: 18px; 
-      cursor: pointer; 
-      font-weight: bold; 
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-      margin-top: 10px;
     }
 
     /* --- CSS สำหรับ Footer --- */
@@ -142,13 +126,11 @@
 
     <div id="lockScreen">
       <h3 style="color: #e74c3c; margin-top: 10px; margin-bottom: 10px;">🔒 เครื่องนี้ยังไม่ได้รับสิทธิ์สแกนหน้า</h3>
-      <p style="margin: 0 0 25px 0; color: #7f8c8d; font-size: 14px;">กรุณากรอก CD Key เพื่อลงทะเบียนเปิดใช้งานเครื่องนี้</p>
+      <p style="margin: 0 0 25px 0; color: #7f8c8d; font-size: 14px;">กรุณากรอก CD Key เพื่อปลดล็อคเครื่อง (ระบบจะปลดล็อคอัตโนมัติเมื่อพิมพ์ครบ)</p>
       
-      <input type="text" id="cdKeyInput" placeholder="กรอกรหัส CD Key" maxlength="25">
+      <input type="text" id="cdKeyInput" placeholder="กรอกรหัส CD Key" maxlength="25" oninput="autoCheckDevice()">
       
-      <button class="btn-lock" onclick="activateDevice()">🔑 ยืนยันรหัสเปิดเครื่อง</button>
-      
-      <p id="lockStatus" style="margin-top: 15px; color: red; font-weight:bold;"></p>
+      <p id="lockStatus" style="margin-top: 15px; font-weight:bold;"></p>
     </div>
 
     <h2>CPT Check-in</h2>
@@ -201,7 +183,7 @@
   </div>
 
   <script>
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyeqr2OFQ2wLUOOuI64VXdfpA520IXdILiv-mYxEgf2XOO2DjwxsQ7n699lwDAEMrauyw/exec"; 
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxwQSw9ah77RVVjiAmJtaR8ZX7OK7xRke0uqTS-NI-MFVKzEPWGLQ6mhfMMIW_f6eKIig/exec"; 
 
     const SERVER_CD_KEY = "CPT1-CHECK-IN2026"; 
 
@@ -224,15 +206,29 @@
       }
     };
 
-    function activateDevice() {
+    // ⚡ ฟังก์ชันตรวจจับรหัสอัตโนมัติ ⚡
+    function autoCheckDevice() {
       const inputKey = document.getElementById('cdKeyInput').value.trim();
       const lockStatus = document.getElementById('lockStatus');
 
-      if (inputKey === SERVER_CD_KEY) {
-        localStorage.setItem('cpt_device_activated', 'true'); 
-        document.getElementById('lockScreen').style.display = 'none'; 
+      // 1. ถ้าจำนวนตัวอักษรพิมพ์ครบเท่ากับรหัสจริงแล้ว ให้เช็คทันที
+      if (inputKey.length >= SERVER_CD_KEY.length) {
+        if (inputKey === SERVER_CD_KEY) {
+          lockStatus.innerText = "✅ รหัสถูกต้อง! กำลังเปิดระบบ...";
+          lockStatus.style.color = "green";
+          
+          localStorage.setItem('cpt_device_activated', 'true'); 
+          
+          // หน่วงเวลา 0.8 วินาทีให้แอดมินเห็นว่าปลดล็อคผ่านแล้ว ค่อยซ่อนจอขาว
+          setTimeout(() => {
+            document.getElementById('lockScreen').style.display = 'none'; 
+          }, 800);
+        } else {
+          lockStatus.innerText = "❌ รหัส CD Key ไม่ถูกต้อง กรุณาเช็คตัวสะกด";
+          lockStatus.style.color = "red";
+        }
       } else {
-        lockStatus.innerText = "❌ รหัส CD Key ไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง";
+        lockStatus.innerText = ""; // ล้างข้อความถ้าพิมพ์ค้างอยู่
       }
     }
 
