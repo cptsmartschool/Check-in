@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ลงทะเบียนรูปภาพ - CPT Check-in</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Sarabun', sans-serif; text-align: center; padding: 20px; background-color: #f0f3f5; margin: 0; }
+    .container { background: white; padding: 25px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 450px; margin: 20px auto; }
+    h2 { color: #2980b9; margin-bottom: 5px; font-weight: 700;}
+    select, input[type="file"] { width: 100%; padding: 12px; margin: 15px 0; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; font-family: 'Sarabun'; box-sizing: border-box;}
+    button { background-color: #2980b9; color: white; padding: 15px; width: 100%; border: none; border-radius: 6px; font-size: 18px; cursor: pointer; font-weight: bold; margin-top: 10px; }
+    button:disabled { background-color: #95a5a6; cursor: not-allowed; }
+    #preview { max-width: 100%; border-radius: 8px; margin-top: 15px; display: none; border: 2px solid #ecf0f1; }
+    #status { margin-top: 15px; font-weight: bold; color: #e67e22; }
+    .note { font-size: 13px; color: #7f8c8d; margin-top: 5px; text-align: left;}
+
+    /* --- CSS สำหรับ Footer แบบใหม่ (ไล่ระดับสีและ Pop-up) --- */
+:root {
+  --blue-main: #2980b9; /* กำหนดตัวแปรสีหลักถ้ายังไม่มี */
+}
+
+.footer {
+  margin-top: 50px;
+  padding: 30px 20px;
+  background: linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(236,240,241,1) 100%); /* ไล่ระดับสีพื้นหลังพื้นหลัง */
+  border-top: 1px solid #e0e0e0;
+  border-radius: 0 0 16px 16px; /* ให้รับกับ Container ด้านบน */
+  
+  /* เอฟเฟกต์ Pop-up ตอนโหลดหน้าเว็บ */
+  animation: footerPopIn 1s ease-out forwards;
+  opacity: 0; /* เริ่มต้นให้ซ่อนไว้ */
+  transform: translateY(20px); /* เริ่มต้นให้อยู่ต่ำกว่าปกติ */
+}
+
+@keyframes footerPopIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.footer-title {
+  font-weight: bold;
+  font-size: 1.1rem;
+  color: #34495e;
+  margin-bottom: 5px;
+  background: linear-gradient(45deg, var(--blue-main), #3498db); /* ไล่ระดับสีที่ตัวอักษร */
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.fw-bold { font-weight: bold; }
+.text-muted { color: #7f8c8d; font-size: 0.85rem; line-height: 1.6; }
+
+/* ปรับปรุง HR ให้สวยงาม */
+.footer hr {
+  width: 60px;
+  height: 3px;
+  background: linear-gradient(90deg, var(--blue-main) 0%, #3498db 100%);
+  border: none;
+  border-radius: 3px;
+  margin: 20px auto;
+}
+
+/* ปรับสไตล์ลิสต์รายชื่อทีมพัฒนา */
+.team-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 15px; /* เว้นระยะห่างระหว่างชื่อ */
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.team-member {
+  background-color: white;
+  padding: 4px 10px;
+  border-radius: 15px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  font-size: 0.8rem;
+}
+/* -------------------------------------------------------- */
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>อัปโหลดรูปภาพหน้าตรง</h2>
+    <p style="margin: 0; color: #7f8c8d;">เพื่อใช้เป็นข้อมูลสแกนหน้า CPT Check-in</p>
+
+    <select id="teacherSelect">
+      <option value="">⏳ กำลังโหลดรายชื่อจากฐานข้อมูล...</option>
+    </select>
+
+    <input type="file" id="fileInput" accept="image/*" onchange="previewAndCompressImage(event)">
+    <p class="note">* ถ่ายหน้าตรง สว่าง ไม่สวมแมสก์หรือแว่นตาดำ</p>
+
+    <img id="preview" />
+
+    <button id="uploadBtn" onclick="uploadData()" disabled>📤 ยืนยันการอัปโหลดรูปภาพ</button>
+    <p id="status"></p>
+
+    <div class="footer">
+  <p class="footer-title">© 2026 CPT Check-in</p>
+  <p class="fw-bold" style="color: var(--blue-main);">Chonprathan Phataek (Panyapol Uppatham) School • All rights reserved.</p>
+  
+  <hr>
+  
+  <p class="text-muted" style="margin-bottom: 10px;">
+    <strong>ที่ปรึกษา :</strong> นางสาวณฐอร อินต่อม ผอ.ชลประทานผาแตก(ปัญญาพลอุปถัมภ์)<br>
+    <strong>รองที่ปรึกษา :</strong> นางวราภัสร์ ใฝคำ รองผู้อำนวยการ
+  </p>
+  
+  <p class="text-muted fw-bold" style="margin-bottom: 8px;">ทีมพัฒนาระบบ :</p>
+  
+  <div class="team-list text-muted">
+    <span class="team-member">นางสาวอนงนาฏ ใบแสง</span>
+    <span class="team-member">นางสาวภัทรภร วงศ์แก้ว</span>
+    <span class="team-member">นางเกศรินทร์ ลอรักษา</span>
+    <span class="team-member">นางยุพิน คัมภีร์ประเสริฐ</span>
+    <span class="team-member">นางแสงบุญ เชิญธงไชย</span>
+    <span class="team-member">นางสาวภัทรพร สุริณา</span>
+    <span class="team-member">นางสะไบทิพย์ ยาโน</span>
+    <span class="team-member">นางณัฐธิดา ทองทา</span>
+    <span class="team-member">นางพัชรา ภิระกันทา</span>
+    <span class="team-member">นางสาวณชกนก ภัทรวรคุณากร</span>
+    <span class="team-member">นางสาวเสาวลักษณ์ ไชยมูล</span>
+    <span class="team-member">นายณรงค์ฤทธิ์ ขุนแก้วพะเนา</span>
+  </div>
+</div>
+  </div>
+
+  <script>
+    // 🛑 นำลิงก์ /exec ใหม่ล่าสุด มาวางตรงนี้ครับ 🛑
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwSahR87ena7lnXJY6WWlX7fJgyrZ4keja3ssuVaoShR6QHqdO8I2PArxAX6JK2D9aT/exec"; 
+
+    let base64Image = "";
+    let teacherDataMap = {}; 
+
+    // 1. ดึงรายชื่อจากระบบผ่าน fetch (แทน google.script.run)
+    fetch(WEB_APP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'getTeacherList' })
+    })
+    .then(res => res.json())
+    .then(teachers => populateDropdown(teachers))
+    .catch(err => document.getElementById('status').innerText = "❌ โหลดรายชื่อล้มเหลว: " + err.message);
+
+    function populateDropdown(teachers) {
+      const select = document.getElementById('teacherSelect');
+      select.innerHTML = '<option value="">-- เลือกชื่อ-นามสกุลของคุณ --</option>';
+      teachers.forEach(t => {
+        teacherDataMap[t.name] = t.position; 
+        const opt = document.createElement('option');
+        opt.value = t.name;
+        opt.text = t.name + " (" + t.position + ")";
+        select.appendChild(opt);
+      });
+    }
+
+    // 2. บีบอัดรูปภาพด้วย Canvas
+    function previewAndCompressImage(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 600; 
+          let scaleSize = 1;
+          
+          if (img.width > MAX_WIDTH) {
+            scaleSize = MAX_WIDTH / img.width;
+          }
+          
+          canvas.width = img.width * scaleSize;
+          canvas.height = img.height * scaleSize;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          
+          base64Image = canvas.toDataURL('image/jpeg', 0.8); 
+          
+          const preview = document.getElementById('preview');
+          preview.src = base64Image;
+          preview.style.display = 'block';
+          
+          checkReady();
+        }
+        img.src = e.target.result;
+      }
+      reader.readAsDataURL(file);
+    }
+
+    // 3. ตรวจสอบก่อนเปิดปุ่มอัปโหลด
+    document.getElementById('teacherSelect').addEventListener('change', checkReady);
+
+    function checkReady() {
+      const name = document.getElementById('teacherSelect').value;
+      const btn = document.getElementById('uploadBtn');
+      if (name && base64Image) {
+        btn.disabled = false;
+      } else {
+        btn.disabled = true;
+      }
+    }
+
+    // 4. ส่งข้อมูลไปเซฟผ่าน fetch (แทน google.script.run)
+    function uploadData() {
+      const name = document.getElementById('teacherSelect').value;
+      const position = teacherDataMap[name];
+      const btn = document.getElementById('uploadBtn');
+      const statusText = document.getElementById('status');
+
+      btn.disabled = true;
+      statusText.innerText = "⏳ ระบบกำลังอัปโหลดและตั้งชื่อไฟล์... กรุณารอสักครู่";
+      statusText.style.color = "#e67e22";
+
+      fetch(WEB_APP_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          action: 'uploadPhoto',
+          name: name,
+          position: position,
+          image: base64Image
+        })
+      })
+      .then(res => res.text())
+      .then(resText => {
+         statusText.innerText = resText;
+         statusText.style.color = resText.includes("✅") ? "green" : "red";
+         
+         if (resText.includes("✅")) {
+            document.getElementById('fileInput').value = "";
+            document.getElementById('preview').style.display = "none";
+            base64Image = "";
+            document.getElementById('teacherSelect').value = "";
+            btn.disabled = true; 
+         } else {
+            btn.disabled = false;
+         }
+      })
+      .catch(err => {
+         statusText.innerText = "❌ เกิดข้อผิดพลาด: " + err.message;
+         statusText.style.color = "red";
+         btn.disabled = false;
+      });
+    }
+  </script>
+</body>
+</html>

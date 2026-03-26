@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard สรุปการลงเวลา - CPT Check-in</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Sarabun', sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px; }
+    .container { max-width: 1000px; margin: 0 auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+    h2 { text-align: center; color: #2c3e50; margin-bottom: 5px; }
+    .subtitle { text-align: center; color: #7f8c8d; margin-bottom: 25px; }
+    .chart-container { position: relative; height: 400px; width: 100%; margin-bottom: 40px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; }
+    th, td { border: 1px solid #ddd; padding: 12px; text-align: center; }
+    th { background-color: #2980b9; color: white; }
+    tr:nth-child(even) { background-color: #f9f9f9; }
+    .badge { padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; color: white; }
+    .badge-danger { background-color: #e74c3c; }
+    .badge-warning { background-color: #f39c12; }
+    .badge-success { background-color: #2ecc71; }
+
+    /* --- CSS สำหรับ Footer แบบใหม่ (ไล่ระดับสีและ Pop-up) --- */
+:root {
+  --blue-main: #2980b9; /* กำหนดตัวแปรสีหลักถ้ายังไม่มี */
+}
+
+.footer {
+  margin-top: 50px;
+  padding: 30px 20px;
+  background: linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(236,240,241,1) 100%); /* ไล่ระดับสีพื้นหลังพื้นหลัง */
+  border-top: 1px solid #e0e0e0;
+  border-radius: 0 0 16px 16px; /* ให้รับกับ Container ด้านบน */
+  
+  /* เอฟเฟกต์ Pop-up ตอนโหลดหน้าเว็บ */
+  animation: footerPopIn 1s ease-out forwards;
+  opacity: 0; /* เริ่มต้นให้ซ่อนไว้ */
+  transform: translateY(20px); /* เริ่มต้นให้อยู่ต่ำกว่าปกติ */
+}
+
+@keyframes footerPopIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.footer-title {
+  font-weight: bold;
+  font-size: 1.1rem;
+  color: #34495e;
+  margin-bottom: 5px;
+  background: linear-gradient(45deg, var(--blue-main), #3498db); /* ไล่ระดับสีที่ตัวอักษร */
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.fw-bold { font-weight: bold; }
+.text-muted { color: #7f8c8d; font-size: 0.85rem; line-height: 1.6; }
+
+/* ปรับปรุง HR ให้สวยงาม */
+.footer hr {
+  width: 60px;
+  height: 3px;
+  background: linear-gradient(90deg, var(--blue-main) 0%, #3498db 100%);
+  border: none;
+  border-radius: 3px;
+  margin: 20px auto;
+}
+
+/* ปรับสไตล์ลิสต์รายชื่อทีมพัฒนา */
+.team-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 15px; /* เว้นระยะห่างระหว่างชื่อ */
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.team-member {
+  background-color: white;
+  padding: 4px 10px;
+  border-radius: 15px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  font-size: 0.8rem;
+}
+/* -------------------------------------------------------- */
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>📊 Dashboard สรุปการลงเวลาทำงาน</h2>
+  <p class="subtitle" id="termInfo">กำลังโหลดข้อมูลปีการศึกษา...</p>
+
+  <div class="chart-container">
+    <canvas id="myChart"></canvas>
+  </div>
+
+  <h3>📋 ตารางสรุปรายบุคคล</h3>
+  <div style="overflow-x: auto;">
+    <table>
+      <thead>
+        <tr>
+          <th>ชื่อ-นามสกุล</th>
+          <th>จำนวนวันที่มา (ครั้ง)</th>
+          <th>จำนวนที่มาสาย (ครั้ง)</th>
+          <th>จำนวนที่ขาด (ครั้ง)</th>
+          <th>สถานะเทอมนี้</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody">
+        <tr><td colspan="5">⏳ กำลังประมวลผลข้อมูล...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="footer">
+  <p class="footer-title">© 2026 CPT Check-in</p>
+  <p class="fw-bold" style="color: var(--blue-main);">Chonprathan Phataek (Panyapol Uppatham) School • All rights reserved.</p>
+  
+  <hr>
+  
+  <p class="text-muted" style="margin-bottom: 10px;">
+    <strong>ที่ปรึกษา :</strong> นางสาวณฐอร อินต่อม ผอ.ชลประทานผาแตก(ปัญญาพลอุปถัมภ์)<br>
+    <strong>รองที่ปรึกษา :</strong> นางวราภัสร์ ใฝคำ รองผู้อำนวยการ
+  </p>
+  
+  <p class="text-muted fw-bold" style="margin-bottom: 8px;">ทีมพัฒนาระบบ :</p>
+  
+  <div class="team-list text-muted">
+    <span class="team-member">นางสาวอนงนาฏ ใบแสง</span>
+    <span class="team-member">นางสาวภัทรภร วงศ์แก้ว</span>
+    <span class="team-member">นางเกศรินทร์ ลอรักษา</span>
+    <span class="team-member">นางยุพิน คัมภีร์ประเสริฐ</span>
+    <span class="team-member">นางแสงบุญ เชิญธงไชย</span>
+    <span class="team-member">นางสาวภัทรพร สุริณา</span>
+    <span class="team-member">นางสะไบทิพย์ ยาโน</span>
+    <span class="team-member">นางณัฐธิดา ทองทา</span>
+    <span class="team-member">นางพัชรา ภิระกันทา</span>
+    <span class="team-member">นางสาวณชกนก ภัทรวรคุณากร</span>
+    <span class="team-member">นางสาวเสาวลักษณ์ ไชยมูล</span>
+    <span class="team-member">นายณรงค์ฤทธิ์ ขุนแก้วพะเนา</span>
+  </div>
+</div>
+</div>
+
+<script>
+  // 🛑 วางลิงก์ /exec ล่าสุดของคุณครูตรงนี้ 🛑
+  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwSahR87ena7lnXJY6WWlX7fJgyrZ4keja3ssuVaoShR6QHqdO8I2PArxAX6JK2D9aT/exec"; 
+
+  window.onload = function() {
+    fetch(WEB_APP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: "getDashboardData" })
+    })
+    .then(res => res.json())
+    .then(response => {
+      document.getElementById('termInfo').innerText = response.term + " | วันทำการที่เปิดระบบสะสม: " + response.workingDays + " วัน";
+      
+      const labels = response.data.map(item => item.name);
+      const presentData = response.data.map(item => item.present);
+      const lateData = response.data.map(item => item.late);
+      const absentData = response.data.map(item => item.absent);
+
+      // --- 1. วาดกราฟแท่ง ---
+      const ctx = document.getElementById('myChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [
+            { label: 'มาปกติ (ครั้ง)', data: presentData, backgroundColor: '#2ecc71' },
+            { label: 'มาสาย (ครั้ง)', data: lateData, backgroundColor: '#f39c12' },
+            { label: 'ขาดงาน (ครั้ง)', data: absentData, backgroundColor: '#e74c3c' }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: { beginAtZero: true }
+          }
+        }
+      });
+
+      // --- 2. วาดตารางสรุปด้านล่าง ---
+      let tableHtml = "";
+      response.data.forEach(row => {
+        let statusBadge = `<span class="badge badge-success">ปกติ</span>`;
+        if (row.absent >= 7 || row.late >= 9) {
+          statusBadge = `<span class="badge badge-danger">หมดสิทธิ์เลื่อนขั้น</span>`;
+        } else if (row.absent >= 3 || row.late >= 3) {
+          statusBadge = `<span class="badge badge-warning">เฝ้าระวัง</span>`;
+        }
+
+        tableHtml += `
+          <tr>
+            <td>${row.name}</td>
+            <td>${row.present}</td>
+            <td>${row.late}</td>
+            <td>${row.absent}</td>
+            <td>${statusBadge}</td>
+          </tr>
+        `;
+      });
+      document.getElementById('tableBody').innerHTML = tableHtml;
+    })
+    .catch(err => {
+      document.getElementById('tableBody').innerHTML = `<tr><td colspan="5">❌ เกิดข้อผิดพลาด: ${err.message}</td></tr>`;
+    });
+  };
+</script>
+</body>
+</html>
