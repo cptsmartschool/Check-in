@@ -28,22 +28,27 @@
 
     @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(39, 174, 96, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(39, 174, 96, 0); } 100% { box-shadow: 0 0 0 0 rgba(39, 174, 96, 0); } }
 
-    /* --- 🔑 สไตล์ของหน้ากากล็อคจอ CD Key --- */
+    /* --- 🔑 แก้ไขส่วนนี้: สไตล์ของหน้ากากล็อคจอ CD Key ให้เลื่อนได้และปุ่มไม่จม --- */
     #lockScreen { 
       position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
       background: white; border-radius: 16px; 
       display: flex; flex-direction: column; justify-content: center; align-items: center; 
-      z-index: 100; padding: 20px; box-sizing: border-box; 
+      z-index: 100; padding: 25px; box-sizing: border-box; 
+      overflow-y: auto; /* 👈 สกอร์เลื่อนหน้าจอได้กรณีล้นจอ */
     }
+    
     #cdKeyInput { 
-      width: 80%; padding: 12px; font-size: 18px; text-align: center; 
+      width: 85%; padding: 14px; font-size: 18px; text-align: center; 
       letter-spacing: 2px; border: 2px solid #bdc3c7; border-radius: 8px; 
-      font-family: 'Sarabun'; margin-bottom: 15px; 
+      font-family: 'Sarabun'; margin-bottom: 20px; 
     }
+    
     .btn-lock { 
-      background-color: #e74c3c; color: white; padding: 12px 30px; 
+      background-color: #e74c3c; color: white; padding: 14px 35px; 
       border: none; border-radius: 8px; font-size: 18px; cursor: pointer; font-weight: bold; 
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.2s;
     }
+    .btn-lock:hover { background-color: #c0392b; }
 
     /* --- CSS สำหรับ Footer --- */
     :root {
@@ -114,10 +119,13 @@
 
     <div id="lockScreen">
       <h3 style="color: #e74c3c; margin-bottom: 10px;">🔒 เครื่องนี้ยังไม่ได้รับสิทธิ์สแกนหน้า</h3>
-      <p style="margin: 0 0 20px 0; color: #7f8c8d; font-size: 14px;">กรุณากรอก CD Key 16 หลัก เพื่อลงทะเบียนเปิดใช้งานเครื่องนี้เฉพาะจุดเช็คอิน</p>
-      <input type="text" id="cdKeyInput" placeholder="XXXX-XXXX-XXXX-XXXX" maxlength="19">
+      <p style="margin: 0 0 20px 0; color: #7f8c8d; font-size: 14px;">กรุณากรอก CD Key เพื่อลงทะเบียนเปิดใช้งานเครื่องนี้เฉพาะจุดเช็คอิน</p>
+      
+      <input type="text" id="cdKeyInput" placeholder="กรอกรหัส CD Key" maxlength="25">
+      
       <button class="btn-lock" onclick="activateDevice()">🔑 ยืนยันรหัสเปิดเครื่อง</button>
-      <p id="lockStatus" style="margin-top:15px; color: red; font-weight:bold;"></p>
+      
+      <p id="lockStatus" style="margin-top:20px; color: red; font-weight:bold;"></p>
     </div>
 
     <h2>CPT Check-in</h2>
@@ -173,7 +181,7 @@
     // 🛑 1. นำลิงก์ /exec ใหม่ล่าสุดของคุณครูมาวางตรงนี้ครับ 🛑
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxwQSw9ah77RVVjiAmJtaR8ZX7OK7xRke0uqTS-NI-MFVKzEPWGLQ6mhfMMIW_f6eKIig/exec"; 
 
-    // 🔑 2. ตั้งรหัส CD Key ลับ 16 หลักของคุณครูที่นี่ (แก้ไขเปลี่ยนได้ตามชอบ)
+    // 🔑 2. รหัส CD Key ที่ใช้ปลดล็อค
     const SERVER_CD_KEY = "CPT1-CHECK-IN2026"; 
 
     const video = document.getElementById('video');
@@ -204,7 +212,7 @@
         localStorage.setItem('cpt_device_activated', 'true'); // บันทึกลงเครื่องถาวร
         document.getElementById('lockScreen').style.display = 'none'; 
       } else {
-        lockStatus.innerText = "❌ CD Key ไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง";
+        lockStatus.innerText = "❌ รหัส CD Key ไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง";
       }
     }
 
