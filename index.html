@@ -28,27 +28,47 @@
 
     @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(39, 174, 96, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(39, 174, 96, 0); } 100% { box-shadow: 0 0 0 0 rgba(39, 174, 96, 0); } }
 
-    /* --- 🔑 แก้ไขส่วนนี้: สไตล์ของหน้ากากล็อคจอ CD Key ให้เลื่อนได้และปุ่มไม่จม --- */
+    /* --- 🔑 สไตล์ของหน้ากากล็อคจอ CD Key (จัดระเบียบปุ่มไม่ให้จมลงข้างล่าง) --- */
     #lockScreen { 
-      position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
-      background: white; border-radius: 16px; 
-      display: flex; flex-direction: column; justify-content: center; align-items: center; 
-      z-index: 100; padding: 25px; box-sizing: border-box; 
-      overflow-y: auto; /* 👈 สกอร์เลื่อนหน้าจอได้กรณีล้นจอ */
+      position: absolute; 
+      top: 0; 
+      left: 0; 
+      width: 100%; 
+      height: 100%; 
+      background: white; 
+      border-radius: 16px; 
+      display: flex; 
+      flex-direction: column; 
+      justify-content: flex-start; /* 👈 ดันเนื้อหาขึ้นบน ไม่กระจายออกข้างล่าง */
+      align-items: center; 
+      z-index: 100; 
+      padding: 40px 20px; /* 👈 เว้นขอบให้อ่านง่าย */
+      box-sizing: border-box; 
+      overflow-y: auto; /* 👈 เลื่อนได้ถ้าจอเล็ก */
     }
-    
     #cdKeyInput { 
-      width: 85%; padding: 14px; font-size: 18px; text-align: center; 
-      letter-spacing: 2px; border: 2px solid #bdc3c7; border-radius: 8px; 
-      font-family: 'Sarabun'; margin-bottom: 20px; 
+      width: 85%; 
+      padding: 14px; 
+      font-size: 18px; 
+      text-align: center; 
+      letter-spacing: 1px; 
+      border: 2px solid #bdc3c7; 
+      border-radius: 8px; 
+      font-family: 'Sarabun'; 
+      margin-bottom: 25px; /* 👈 เว้นช่องว่างให้ปุ่มห่างออกมา */
     }
-    
     .btn-lock { 
-      background-color: #e74c3c; color: white; padding: 14px 35px; 
-      border: none; border-radius: 8px; font-size: 18px; cursor: pointer; font-weight: bold; 
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.2s;
+      background-color: #e74c3c; 
+      color: white; 
+      padding: 15px 40px; 
+      border: none; 
+      border-radius: 8px; 
+      font-size: 18px; 
+      cursor: pointer; 
+      font-weight: bold; 
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      margin-bottom: 30px; 
     }
-    .btn-lock:hover { background-color: #c0392b; }
 
     /* --- CSS สำหรับ Footer --- */
     :root {
@@ -119,13 +139,13 @@
 
     <div id="lockScreen">
       <h3 style="color: #e74c3c; margin-bottom: 10px;">🔒 เครื่องนี้ยังไม่ได้รับสิทธิ์สแกนหน้า</h3>
-      <p style="margin: 0 0 20px 0; color: #7f8c8d; font-size: 14px;">กรุณากรอก CD Key เพื่อลงทะเบียนเปิดใช้งานเครื่องนี้เฉพาะจุดเช็คอิน</p>
+      <p style="margin: 0 0 25px 0; color: #7f8c8d; font-size: 14px;">กรุณากรอก CD Key เพื่อลงทะเบียนเปิดใช้งานเครื่องนี้เฉพาะจุดเช็คอิน</p>
       
       <input type="text" id="cdKeyInput" placeholder="กรอกรหัส CD Key" maxlength="25">
       
       <button class="btn-lock" onclick="activateDevice()">🔑 ยืนยันรหัสเปิดเครื่อง</button>
       
-      <p id="lockStatus" style="margin-top:20px; color: red; font-weight:bold;"></p>
+      <p id="lockStatus" style="margin-top:10px; color: red; font-weight:bold;"></p>
     </div>
 
     <h2>CPT Check-in</h2>
@@ -178,10 +198,10 @@
   </div>
 
   <script>
-    // 🛑 1. นำลิงก์ /exec ใหม่ล่าสุดของคุณครูมาวางตรงนี้ครับ 🛑
+    // 🛑 1. ลิงก์ Web App /exec ของคุณครู 🛑
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxwQSw9ah77RVVjiAmJtaR8ZX7OK7xRke0uqTS-NI-MFVKzEPWGLQ6mhfMMIW_f6eKIig/exec"; 
 
-    // 🔑 2. รหัส CD Key ที่ใช้ปลดล็อค
+    // 🔑 2. รหัส CD Key ที่ใช้ลงทะเบียนปลดล็อคเครื่อง
     const SERVER_CD_KEY = "CPT1-CHECK-IN2026"; 
 
     const video = document.getElementById('video');
@@ -196,11 +216,11 @@
     let faceMatcher = null; 
     let currentMatch = null; 
 
-    // --- 🔑 ตรวจสอบ CD Key ทันทีที่เปิดหน้าเว็บ ---
+    // --- 🔑 เช็คสิทธิ์ลงทะเบียนทันทีที่เปิดหน้าเว็บ ---
     window.onload = function() {
       const isActivated = localStorage.getItem('cpt_device_activated');
       if (isActivated === 'true') {
-        document.getElementById('lockScreen').style.display = 'none'; // ถ้าลงทะเบียนแล้วให้ซ่อนจอล็อคเลย
+        document.getElementById('lockScreen').style.display = 'none'; // ผ่านฉลุย
       }
     };
 
